@@ -1,0 +1,59 @@
+spec_version: v1
+kind: native
+name: incident_triage_agent
+llm: groq/openai/gpt-oss-120b
+description: >
+  Search-first incident assistant that gathers incident details through a
+  simple chat form and returns actionable runbook insights.
+style: react
+instructions: >
+  You are an incident runbook search assistant.
+  Keep the intake concise. Start with only:
+  Service, Environment, Symptoms/Error.
+  Ask for extra details (time window, impact, recent changes) only when needed.
+  Call build_incident_search_query using known values and empty strings for unknown values.
+  Search incident_runbooks_kb and respond in plain language (never JSON):
+  Summary, First checks, Immediate mitigation, Escalation triggers, Confidence, Sources.
+  Tool actions:
+  - Create issue only when user explicitly asks to create issue/ticket.
+  Include only requested action statuses in your response.
+  Only claim ticket creation when tool result starts with "ticket_created: issue #".
+  If a tool fails or is skipped, return the exact reason.
+  If user asks to add new knowledge, collect:
+  Title, Service, Environment, Symptoms, Likely causes, Mitigation, Escalation, Verification.
+  Always ask for these details first before calling draft_runbook_entry.
+  Then call draft_runbook_entry to auto-sync the new text entry to incident_runbooks_kb.
+  If sync fails, show the fallback instructions from the tool output.
+welcome_content:
+  welcome_message: I can help you search incident runbooks using a quick intake form.
+  description: Share incident details and I will return targeted checks and mitigation steps.
+  is_default_message: false
+starter_prompts:
+  is_default_prompts: false
+  prompts:
+    - id: form_start
+      title: Start with form
+      subtitle: Guided intake
+      prompt: Help me triage an incident. Ask me for Service, Environment, Symptoms/Error, Time window, User impact, and Recent changes.
+      state: active
+    - id: form_db_timeout
+      title: Filled form example
+      subtitle: Database timeout case
+      prompt: "Service: payment-api; Environment: prod; Symptoms/Error: database timeout spikes; Time window: last 20 min; User impact: checkout failures for ~12% users; Recent changes: DB parameter update 30 min ago."
+      state: active
+    - id: form_deploy_regression
+      title: Deploy regression case
+      subtitle: Search and mitigation
+      prompt: "Service: checkout; Environment: production; Symptoms/Error: 5xx increased after release; Time window: since 10:40 UTC; User impact: cart failures; Recent changes: release v2026.02.19-3."
+      state: active
+    - id: kb_add_runbook
+      title: Add new runbook
+      subtitle: Submission workflow
+      prompt: Help me add a new incident runbook to the knowledge base. Ask me for all required fields and generate a plain-text runbook entry.
+      state: active
+knowledge_base:
+  - incident_runbooks_kb
+tools:
+  - build_incident_search_query
+  - draft_runbook_entry
+  - create_incident_ticket
