@@ -8,7 +8,7 @@ from ibm_watsonx_orchestrate.agent_builder.tools import ToolPermission, tool
 
 
 DEFAULT_ENGINEER_EMAIL = ""
-SENDER_EMAIL = "mitpatel.ce@gmail.com"
+SENDER_EMAIL = ""
 SENDER_PASSWORD = ""
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
